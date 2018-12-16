@@ -145,6 +145,8 @@ class VariableReplacer(object):
             return self._get_dict_variable_item(name, variable, item)
         if is_list_like(variable):
             return self._get_list_variable_item(name, variable, item)
+        if is_string(variable):
+            return self._get_list_variable_item(name, variable, item)
         raise VariableError("Variable '%s' is %s, not list or dictionary, "
                             "and thus accessing item '%s' from it is not "
                             "possible."
@@ -158,16 +160,17 @@ class VariableReplacer(object):
 
     def _get_list_variable_item(self, name, variable, index):
         index = self.replace_string(index)
+        variable_type = 'List' if not is_string(variable) else 'String'
         try:
             index = self._parse_list_variable_index(index, name[0] == '$')
         except ValueError:
-            raise VariableError("List '%s' used with invalid index '%s'."
-                                % (name, index))
+            raise VariableError("%s '%s' used with invalid index '%s'."
+                                % (variable_type, name, index))
         try:
             return variable[index]
         except IndexError:
-            raise VariableError("List '%s' has no item in index %d."
-                                % (name, index))
+            raise VariableError("%s '%s' has no item in index %d."
+                                % (variable_type, name, index))
 
     def _parse_list_variable_index(self, index, support_slice=True):
         if ':' not in index:
